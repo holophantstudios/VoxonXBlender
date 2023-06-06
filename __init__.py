@@ -14,9 +14,10 @@ bl_info = {
 
 from bpy.types import Panel, Operator, PropertyGroup, AddonPreferences
 
-from bpy.props import StringProperty, BoolProperty, PointerProperty, EnumProperty, FloatVectorProperty
+from bpy.props import StringProperty, BoolProperty, PointerProperty, EnumProperty, FloatVectorProperty, IntProperty
 
 import bpy, mathutils
+from . import addon_updater_ops
 import os
 import sys
 import importlib
@@ -461,25 +462,34 @@ def make_viewbox(aspect):
 		bpy.ops.object.mode_set(mode='OBJECT')
 	bpy.ops.object.select_all(action='DESELECT')
 	scene = bpy.context.scene
+
+	make_new = True
 	if ('VIEWBOX' in scene) and (scene['VIEWBOX'] is not None):
 		viewbox = scene['VIEWBOX']
-		bpy.context.view_layer.objects.active = viewbox
-		viewbox.select_set(True)
+		if viewbox.name in scene.objects:
+			bpy.context.view_layer.objects.active = viewbox
+			viewbox.select_set(True)
 
-		# Get rid of any transformations and reapply at the end
-		matrix_viewbox = viewbox.matrix_world
-		matrix_viewbox_copy = matrix_viewbox.copy()
-		matrix_viewbox.identity()
+			# Get rid of any transformations and reapply at the end
+			matrix_viewbox = viewbox.matrix_world
+			matrix_viewbox_copy = matrix_viewbox.copy()
+			matrix_viewbox.identity()
 
-		bpy.ops.object.mode_set(mode='EDIT')
-		bpy.ops.mesh.primitive_cube_add(scale = aspect)
-		bpy.ops.mesh.select_all(action='INVERT')
-		bpy.ops.mesh.delete()
-		bpy.ops.object.mode_set(mode='OBJECT')
-		bpy.ops.object.origin_set(type='GEOMETRY_ORIGIN')
+			bpy.ops.object.mode_set(mode='EDIT')
+			bpy.ops.mesh.primitive_cube_add(scale = aspect)
+			bpy.ops.mesh.select_all(action='INVERT')
+			bpy.ops.mesh.delete()
+			bpy.ops.object.mode_set(mode='OBJECT')
+			bpy.ops.object.origin_set(type='GEOMETRY_ORIGIN')
+			
+			viewbox.matrix_world = matrix_viewbox_copy
+			make_new = False
+		else:
+			scene['VIEWBOX'] = None
+			if not viewbox.users:
+				bpy.data.objects.remove(viewbox)
 
-		viewbox.matrix_world = matrix_viewbox_copy
-	else:
+	if make_new:
 		bpy.ops.mesh.primitive_cube_add(scale = aspect)
 		viewbox = bpy.context.selected_objects[0]
 		viewbox.show_axis = True
@@ -498,6 +508,7 @@ class VoxonRenderingPanel(Panel):
 
 	def draw(self, context):
 		layout = self.layout
+		addon_updater_ops.check_for_update_background(context)
 
 		voxon_prop = context.scene.voxon_properties
 		conn_prop = context.preferences.addons[__name__].preferences
@@ -560,6 +571,8 @@ class VoxonRenderingPanel(Panel):
 		sub = row.row()
 		
 		sub.operator("voxon.record", text="Make Recording")
+
+		addon_updater_ops.update_notice_box_ui(self, context)
 
 class ViewboxWrapper(Operator):
 	bl_idname = "voxon.viewbox"
@@ -629,7 +642,7 @@ class RecordingWrapper(Operator):
 		self.report(response[0], response[1])
 		return {'FINISHED'}
 
-class ConnectionProperties(AddonPreferences):
+class AddonPrefs(AddonPreferences):
 	bl_idname = __name__
 	ip_address: StringProperty(
 		name = "IP Address",
@@ -640,6 +653,42 @@ class ConnectionProperties(AddonPreferences):
 		name = "Connected",
 		default = False
 	)
+
+	auto_check_update = BoolProperty(
+		name="Auto-check for Update",
+		description="If enabled, auto-check for updates using an interval",
+		default=False)
+
+	updater_interval_months = IntProperty(
+		name='Months',
+		description="Number of months between checking for updates",
+		default=0,
+		min=0)
+
+	updater_interval_days = IntProperty(
+		name='Days',
+		description="Number of days between checking for updates",
+		default=7,
+		min=0,
+		max=31)
+
+	updater_interval_hours = IntProperty(
+		name='Hours',
+		description="Number of hours between checking for updates",
+		default=0,
+		min=0,
+		max=23)
+
+	updater_interval_minutes = IntProperty(
+		name='Minutes',
+		description="Number of minutes between checking for updates",
+		default=0,
+		min=0,
+		max=59)
+
+	def draw(self, context):
+		layout = self.layout
+		addon_updater_ops.update_settings_ui(self, context)
 
 
 class VoxonProperties(PropertyGroup):
@@ -712,16 +761,17 @@ def load_post_handler(dummy):
 		conn_prop.connected = False
 		time.sleep(0.1)
 	return {'FINISHED'}
-	
+
+classes = (AddonPrefs, VoxonRenderingPanel, RecordingWrapper, NetworkConnectionDialog,
+	   ViewboxWrapper, VoxonProperties, Fillmode_Panel, ReloadImagesTextures)
+
 def register():
-	bpy.utils.register_class(VoxonRenderingPanel)
-	bpy.utils.register_class(RecordingWrapper)
-	bpy.utils.register_class(NetworkConnectionDialog)
-	bpy.utils.register_class(ViewboxWrapper)
-	bpy.utils.register_class(VoxonProperties)
-	bpy.utils.register_class(ConnectionProperties)
-	bpy.utils.register_class(Fillmode_Panel)
-	bpy.utils.register_class(ReloadImagesTextures)
+	# At top so updater can still be used if user updates to non-working version of add-on
+	addon_updater_ops.register(bl_info)
+	
+	for cls in classes:
+		#addon_updater_ops.make_annotations(cls)  # Avoid blender 2.8 warnings.
+		bpy.utils.register_class(cls)
 	
 	try:
 		bpy.types.Material.fillmode = EnumProperty(
@@ -754,13 +804,9 @@ def unregister():
 	if(bpy.app.timers.is_registered(REGISTERED_LOOP)):	
 		bpy.app.timers.unregister(REGISTERED_LOOP)
 	
-	bpy.utils.unregister_class(VoxonRenderingPanel)
-	bpy.utils.unregister_class(RecordingWrapper)
-	bpy.utils.unregister_class(NetworkConnectionDialog)
-	bpy.utils.unregister_class(ViewboxWrapper)
-	bpy.utils.unregister_class(VoxonProperties)
-	bpy.utils.unregister_class(ConnectionProperties)
-	bpy.utils.unregister_class(Fillmode_Panel)
-	bpy.utils.unregister_class(ReloadImagesTextures)
+	addon_updater_ops.unregister()
+	
+	for cls in reversed(classes):
+		bpy.utils.unregister_class(cls)
 	
 	bpy.app.handlers.load_post.remove(load_post_handler)
