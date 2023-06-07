@@ -508,7 +508,7 @@ class VoxonRenderingPanel(Panel):
 
 	def draw(self, context):
 		layout = self.layout
-		addon_updater_ops.check_for_update_background(context)
+		addon_updater_ops.check_for_update_background()
 
 		voxon_prop = context.scene.voxon_properties
 		conn_prop = context.preferences.addons[__name__].preferences
