@@ -443,7 +443,13 @@ class SingletonUpdater:
     
     @property
     def update_version_str(self):
-        return self._update_version.replace(" ", "").replace(",", ".")[1:-1]
+        var_type = type(self._update_version)
+        if var_type is tuple:
+            return ".".join(map(str, self._update_version))
+        elif var_type is str:
+            return self._update_version.replace(" ", "").replace(",", ".")[1:-1]
+        else:
+            return ""
 
     @property
     def use_releases(self):
