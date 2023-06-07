@@ -6,7 +6,7 @@ Adapted from Ben Weatherall's Voxon Plugin
 
 bl_info = {
 	"name": "Voxon X Blender Add-on",
-	"version": (2, 4, 1),
+	"version": (2, 4, 2),
 	"author": "Holophant Studios",
 	"blender": (3, 0, 0),
 	"category": "Render",
@@ -515,7 +515,7 @@ class VoxonRenderingPanel(Panel):
 		conn_prop = context.preferences.addons[__name__].preferences
 
 		row = layout.row()
-		row.label(text='Connect to Voxon Device')
+		row.label(text='Connect to Voxon Device :P')
 		row = layout.row()
 		row.prop(conn_prop, "ip_address")
 		row = layout.row()

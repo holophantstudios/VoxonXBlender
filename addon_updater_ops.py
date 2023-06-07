@@ -542,18 +542,12 @@ class AddonUpdaterUpdatedSuccessful(bpy.types.Operator):
                 col = layout.column()
                 col.scale_y = 0.7
                 col.label(text="Addon restored", icon="RECOVER_LAST")
-                col.label(
-                    text="Consider restarting blender to fully reload.",
-                    icon="BLANK1")
                 updater.json_reset_restore()
             else:
                 col = layout.column()
                 col.scale_y = 0.7
                 col.label(
                     text="Addon successfully installed", icon="FILE_TICK")
-                col.label(
-                    text="Consider restarting blender to fully reload.",
-                    icon="BLANK1")
 
     def execute(self, context):
         return {'FINISHED'}
