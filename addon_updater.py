@@ -84,7 +84,7 @@ class SingletonUpdater:
 
         # By default, don't auto disable+re-enable the addon after an update,
         # as this is less stable/often won't fully reload all modules anyways.
-        self._auto_reload_post_update = False
+        self._auto_reload_post_update = True
 
         # Settings for the frequency of automated background checks.
         self._check_interval_enabled = False

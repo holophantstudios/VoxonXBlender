@@ -6,7 +6,7 @@ Adapted from Ben Weatherall's Voxon Plugin
 
 bl_info = {
 	"name": "Voxon X Blender Add-on",
-	"version": (2, 4, 1),
+	"version": (2, 4, 2),
 	"author": "Holophant Studios",
 	"blender": (3, 0, 0),
 	"category": "Render",
@@ -509,6 +509,7 @@ class VoxonRenderingPanel(Panel):
 	def draw(self, context):
 		layout = self.layout
 		addon_updater_ops.check_for_update_background()
+		addon_updater_ops.update_notice_box_ui(self, context)
 
 		voxon_prop = context.scene.voxon_properties
 		conn_prop = context.preferences.addons[__name__].preferences
@@ -571,8 +572,6 @@ class VoxonRenderingPanel(Panel):
 		sub = row.row()
 		
 		sub.operator("voxon.record", text="Make Recording")
-
-		addon_updater_ops.update_notice_box_ui(self, context)
 
 class ViewboxWrapper(Operator):
 	bl_idname = "voxon.viewbox"
