@@ -654,32 +654,32 @@ class AddonPrefs(AddonPreferences):
 		default = False
 	)
 
-	auto_check_update = BoolProperty(
+	auto_check_update: BoolProperty(
 		name="Auto-check for Update",
 		description="If enabled, auto-check for updates using an interval",
 		default=False)
 
-	updater_interval_months = IntProperty(
+	updater_interval_months: IntProperty(
 		name='Months',
 		description="Number of months between checking for updates",
 		default=0,
 		min=0)
 
-	updater_interval_days = IntProperty(
+	updater_interval_days: IntProperty(
 		name='Days',
 		description="Number of days between checking for updates",
 		default=7,
 		min=0,
 		max=31)
 
-	updater_interval_hours = IntProperty(
+	updater_interval_hours: IntProperty(
 		name='Hours',
 		description="Number of hours between checking for updates",
 		default=0,
 		min=0,
 		max=23)
 
-	updater_interval_minutes = IntProperty(
+	updater_interval_minutes: IntProperty(
 		name='Minutes',
 		description="Number of minutes between checking for updates",
 		default=0,
