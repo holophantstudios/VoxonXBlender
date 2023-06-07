@@ -170,7 +170,7 @@ class AddonUpdaterInstallPopup(bpy.types.Operator):
         elif updater.update_ready:
             col = layout.column()
             col.scale_y = 0.7
-            col.label(text="Update {} ready!".format(updater.update_version),
+            col.label(text="Update {} ready!".format(updater.update_version_str),
                       icon="LOOP_FORWARDS")
             col.label(text="Choose 'Update Now' & press OK to install, ",
                       icon="BLANK1")
@@ -1054,7 +1054,7 @@ def update_settings_ui(self, context, element=None):
         split = sub_col.split(align=True)
         split.scale_y = 2
         split.operator(AddonUpdaterUpdateNow.bl_idname,
-                       text="Update now to " + '.'.join(map(str, updater.update_version)))
+                       text="Update now to " + updater.update_version_str)
         split = sub_col.split(align=True)
         split.scale_y = 2
         split.operator(AddonUpdaterCheckNow.bl_idname,
@@ -1062,7 +1062,7 @@ def update_settings_ui(self, context, element=None):
 
     elif updater.update_ready and updater.manual_only:
         col.scale_y = 2
-        dl_now_txt = "Download " + str(updater.update_version)
+        dl_now_txt = "Download " + updater.update_version_str
         col.operator("wm.url_open",
                      text=dl_now_txt).url = updater.website
     else:  # i.e. that updater.update_ready == False.
@@ -1195,7 +1195,7 @@ def update_settings_ui_condensed(self, context, element=None):
         split = sub_col.split(align=True)
         split.scale_y = 2
         split.operator(AddonUpdaterUpdateNow.bl_idname,
-                       text="Update now to " + str(updater.update_version))
+                       text="Update now to " + updater.update_version_str)
         split = sub_col.split(align=True)
         split.scale_y = 2
         split.operator(AddonUpdaterCheckNow.bl_idname,
@@ -1203,7 +1203,7 @@ def update_settings_ui_condensed(self, context, element=None):
 
     elif updater.update_ready and updater.manual_only:
         col.scale_y = 2
-        dl_txt = "Download " + str(updater.update_version)
+        dl_txt = "Download " + updater.update_version_str
         col.operator("wm.url_open", text=dl_txt).url = updater.website
     else:  # i.e. that updater.update_ready == False.
         sub_col = col.row(align=True)
@@ -1378,7 +1378,7 @@ def register(bl_info):
 
     # Optional, consider turning off for production or allow as an option
     # This will print out additional debugging info to the console
-    updater.verbose = True  # make False for production default
+    updater.verbose = False  # make False for production default
 
     # Optional, customize where the addon updater processing subfolder is,
     # essentially a staging folder used by the updater on its own
@@ -1504,7 +1504,7 @@ def register(bl_info):
     # Recommended false to encourage blender restarts on update completion
     # Setting this option to True is NOT as stable as false (could cause
     # blender crashes).
-    updater.auto_reload_post_update = False
+    updater.auto_reload_post_update = True
 
     # The register line items for all operators/panels.
     # If using bpy.utils.register_module(__name__) to register elsewhere

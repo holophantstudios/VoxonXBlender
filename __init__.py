@@ -6,7 +6,7 @@ Adapted from Ben Weatherall's Voxon Plugin
 
 bl_info = {
 	"name": "Voxon X Blender Add-on",
-	"version": (2, 4, 2),
+	"version": (2, 4, 1),
 	"author": "Holophant Studios",
 	"blender": (3, 0, 0),
 	"category": "Render",

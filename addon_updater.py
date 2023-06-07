@@ -440,6 +440,10 @@ class SingletonUpdater:
     @property
     def update_version(self):
         return self._update_version
+    
+    @property
+    def update_version_str(self):
+        return self._update_version.replace(" ", "").replace(",", ".")[1:-1]
 
     @property
     def use_releases(self):
@@ -1121,16 +1125,12 @@ class SingletonUpdater:
 
         # not allowed in restricted context, such as register module
         # toggle to refresh
-        if "addon_disable" in dir(bpy.ops.wm):  # 2.7
-            bpy.ops.wm.addon_disable(module=self._addon_package)
-            bpy.ops.wm.addon_refresh()
-            bpy.ops.wm.addon_enable(module=self._addon_package)
-            print("2.7 reload complete")
-        else:  # 2.8
-            bpy.ops.preferences.addon_disable(module=self._addon_package)
-            bpy.ops.preferences.addon_refresh()
-            bpy.ops.preferences.addon_enable(module=self._addon_package)
-            print("2.8 reload complete")
+        ip = bpy.context.preferences.addons[__package__].preferences.ip_address # save IP
+        bpy.ops.preferences.addon_disable(module=self._addon_package)
+        bpy.ops.preferences.addon_refresh()
+        bpy.ops.preferences.addon_enable(module=self._addon_package)
+        bpy.context.preferences.addons[__package__].preferences.ip_address = ip
+        print("2.8 reload complete")
 
     # -------------------------------------------------------------------------
     # Other non-api functions and setups
