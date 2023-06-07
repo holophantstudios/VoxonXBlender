@@ -515,7 +515,7 @@ class VoxonRenderingPanel(Panel):
 		conn_prop = context.preferences.addons[__name__].preferences
 
 		row = layout.row()
-		row.label(text='Connect to Voxon Device')
+		row.label(text='Connect to Voxon Device :P')
 		row = layout.row()
 		row.prop(conn_prop, "ip_address")
 		row = layout.row()
