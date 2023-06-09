@@ -6,7 +6,7 @@ Adapted from Ben Weatherall's Voxon Plugin
 
 bl_info = {
 	"name": "Voxon X Blender Add-on",
-	"version": (2, 4, 2),
+	"version": (2, 4, 1),
 	"author": "Holophant Studios",
 	"blender": (3, 0, 0),
 	"category": "Render",
@@ -17,7 +17,6 @@ from bpy.types import Panel, Operator, PropertyGroup, AddonPreferences
 from bpy.props import StringProperty, BoolProperty, PointerProperty, EnumProperty, FloatVectorProperty, IntProperty
 
 import bpy, mathutils
-from . import addon_updater_ops
 import os
 import sys
 import importlib
@@ -57,6 +56,10 @@ from . import voxieplay
 importlib.reload(voxieplay)
 from . import voxierecording
 importlib.reload(voxierecording)
+from . import addon_updater_ops
+importlib.reload(addon_updater_ops)
+from . import addon_updater
+importlib.reload(addon_updater)
 
 from .bigpak import BigPak
 from .voxieplay import *
@@ -146,6 +149,8 @@ class VoxonCast():
 		if((time.time() - self.start_time) < self.remote_time):
 			return 0.01
 		
+		global REGISTERED_LOOP
+
 		dps = bpy.context.evaluated_depsgraph_get()
 		scene = bpy.context.scene
 		voxon_props = scene.voxon_properties
@@ -332,9 +337,10 @@ class VoxonCast():
 				elif obj['use_cols']:
 					obj['use_cols'] = False
 					obj['recalc'] = True
+
 				
 				test_loop = mesh.loops[len(mesh.loops)//2].vertex_index
-				if obj['edge_count'] != len(mesh.edges) or obj['test_loop'] != test_loop:
+				if obj['edge_count'] != len(mesh.edges) or 'test_loop' not in obj or obj['test_loop'] != test_loop:
 					obj['edge_count'] = len(mesh.edges)
 					obj['recalc'] = True
 				
@@ -378,7 +384,6 @@ class VoxonCast():
 				self.msg = b''
 				self.disconnect()
 				
-				global REGISTERED_LOOP
 				if(bpy.app.timers.is_registered(REGISTERED_LOOP)):
 					bpy.app.timers.unregister(REGISTERED_LOOP)
 				return None
@@ -391,7 +396,17 @@ class VoxonCast():
 			self.msg = b''
 			
 			self.ProcessResponse()
-				
+		except BigPak.error as e:
+			if not (hasattr(e, 'winerror') and e.winerror == 10054):
+				if e.errno == 65:
+					VoxonCast.show_custorm_error("Unable to find device with specified IP address")
+				else:
+					VoxonCast.show_error()
+				self.disconnect()
+				if(bpy.app.timers.is_registered(REGISTERED_LOOP)):
+					bpy.app.timers.unregister(REGISTERED_LOOP)
+				self.bigpak = None
+				return None
 		except Exception:
 			VoxonCast.show_error()
 			self.disconnect()
@@ -515,7 +530,7 @@ class VoxonRenderingPanel(Panel):
 		conn_prop = context.preferences.addons[__name__].preferences
 
 		row = layout.row()
-		row.label(text='Connect to Voxon Device :P')
+		row.label(text='Connect to Voxon Device')
 		row = layout.row()
 		row.prop(conn_prop, "ip_address")
 		row = layout.row()
@@ -667,7 +682,7 @@ class AddonPrefs(AddonPreferences):
 	updater_interval_days: IntProperty(
 		name='Days',
 		description="Number of days between checking for updates",
-		default=7,
+		default=1,
 		min=0,
 		max=31)
 

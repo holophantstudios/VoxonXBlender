@@ -89,7 +89,7 @@ class SingletonUpdater:
         # Settings for the frequency of automated background checks.
         self._check_interval_enabled = False
         self._check_interval_months = 0
-        self._check_interval_days = 7
+        self._check_interval_days = 1
         self._check_interval_hours = 0
         self._check_interval_minutes = 0
 
@@ -1129,14 +1129,7 @@ class SingletonUpdater:
         addon_utils.modules(refresh=True)
         bpy.utils.refresh_script_paths()
 
-        # not allowed in restricted context, such as register module
-        # toggle to refresh
-        ip = bpy.context.preferences.addons[__package__].preferences.ip_address # save IP
-        bpy.ops.preferences.addon_disable(module=self._addon_package)
-        bpy.ops.preferences.addon_refresh()
-        bpy.ops.preferences.addon_enable(module=self._addon_package)
-        bpy.context.preferences.addons[__package__].preferences.ip_address = ip
-        print("2.8 reload complete")
+        bpy.ops.script.reload()
 
     # -------------------------------------------------------------------------
     # Other non-api functions and setups
@@ -1691,7 +1684,10 @@ class GithubEngine:
         return "{}/branches".format(self.form_repo_url(updater))
 
     def form_branch_url(self, branch, updater):
-        return "{}/zipball/{}".format(self.form_repo_url(updater), branch)
+        if branch == "master":
+            return "{}/zipball".format(self.form_repo_url(updater))
+        else:
+            return "{}/zipball/{}".format(self.form_repo_url(updater), branch)
 
     def parse_tags(self, response, updater):
         if response is None:

@@ -270,7 +270,6 @@ def make_recording(action, location, name, old):
                                     continue  
                             else:
                                 obj['voxon_material'] = 'DEFAULT'
-                                obj['default_node'] = shader_node.inputs[0]
                         else:
                             obj['render_voxon'] = False
                             log.write("WARNING: "+obj.name+" not rendered due to unsupported shader node\n")
