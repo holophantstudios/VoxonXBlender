@@ -82,7 +82,8 @@ class VoxonCast():
 	@staticmethod
 	def error_window(self, context):
 		error_lines = VoxonCast.error.split('\n')
-		error_lines.pop()
+		if not len(error_lines[-1]):
+			error_lines.pop()
 		for text in error_lines: 
 			row = self.layout.row(align = True)
 			row.alignment = 'EXPAND'
@@ -96,7 +97,7 @@ class VoxonCast():
 		bpy.context.window_manager.popup_menu(VoxonCast.error_window, title = 'Voxon Error', icon = 'ERROR')
 	
 	@staticmethod
-	def show_custorm_error(err):
+	def show_custom_error(err):
 		VoxonCast.error = err
 		print(VoxonCast.error)
 		bpy.context.window_manager.popup_menu(VoxonCast.error_window, title = 'Voxon Error', icon = 'ERROR')
@@ -399,7 +400,7 @@ class VoxonCast():
 		except BigPak.error as e:
 			if not (hasattr(e, 'winerror') and e.winerror == 10054):
 				if e.errno == 65:
-					VoxonCast.show_custorm_error("Unable to find device with specified IP address")
+					VoxonCast.show_custom_error("Unable to find device with specified IP address")
 				else:
 					VoxonCast.show_error()
 				self.disconnect()
