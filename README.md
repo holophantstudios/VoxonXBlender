@@ -18,8 +18,21 @@ The Voxon Rendering Panel can be found in Render Properties in Blender and conta
 ### Viewbox
 The viewbox is essentially a 3D camera for the volumetric display.  Only objects within the viewbox will be rendered.  The viewbox can be moved, rotated, scaled, and even animated.
 
-The viewbox can be created in two ways.  If "Auto-detect Viewbox" is selected when real-time rendering, the add-on will automatically create the correctly sized viewbox upon connecting to the Voxon Device.  
+The viewbox can be created from the Voxon Rendering Panel in two ways.  If "Auto-detect Viewbox" is selected when real-time rendering, the add-on will automatically create the correctly sized viewbox upon connecting to the Voxon Device.  Clicking "Generate Viewbox" will also create a viewbox, though you must make sure the aspect is set correctly.  The default aspect is correct for the VX1 and the VXR so it should only ever need to be changed if you are working with an experimental display.
+
+When generating a viewbox when one already exists, the new viewbox will retain any animations applied to the old viewbox, even if the aspect has changed.
 ### Supported Materials
+#### Supported Shaders
+ - Principled BSDF (Blender's default)
+ - Diffuse BSDF
+#### Supported Base Colors
+ - Solid color (both with and without using nodes)
+ - Image Texture
+ - Color Attribute (vertex color)
+#### Voxon Fillmode
+ - Dot
+ - Line (wireframe)
+ - Surface
 ### Real-Time Rendering
 ### Making Recordings
 ### Updating the Add-on
