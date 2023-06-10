@@ -531,7 +531,7 @@ class VoxonRenderingPanel(Panel):
 		conn_prop = context.preferences.addons[__name__].preferences
 
 		row = layout.row()
-		row.label(text='Connect to Voxon Device')
+		row.label(text='Real-Time Rendering')
 		row = layout.row()
 		row.prop(conn_prop, "ip_address")
 		row = layout.row()
@@ -669,10 +669,10 @@ class AddonPrefs(AddonPreferences):
 		default = False
 	)
 
-	auto_check_update: BoolProperty(
+	auto_check_update:v BoolProperty(
 		name="Auto-check for Update",
 		description="If enabled, auto-check for updates using an interval",
-		default=False)
+		default=True)
 
 	updater_interval_months: IntProperty(
 		name='Months',

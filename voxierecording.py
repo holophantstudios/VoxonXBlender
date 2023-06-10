@@ -186,7 +186,7 @@ def make_recording(action, location, name, old):
     try:
         image_lookup = {} # convert image path to an image file name, if possible
         for obj in scene.objects:
-            if obj.type != 'MESH' or (obj is viewbox) or obj.hide_render:
+            if obj.type != 'MESH' or (obj is viewbox):
                 obj['render_voxon'] = False
                 #log.write("INFO: "+obj.name+" not rendered (expected not to be rendered)\n")
                 continue
@@ -234,6 +234,7 @@ def make_recording(action, location, name, old):
                                                 if not matched_image:
                                                     shutil.copy(image_path, image_name)
                                             except FileNotFoundError:
+                                                obj['render_voxon'] = False
                                                 log.write("WARNING: "+obj.name+" not rendered, unable to find image texture at given path\n")
                                                 continue
                                             obj['image_name'] = image_name.encode('ascii')
@@ -365,7 +366,7 @@ def make_recording_frame(time, aspect, show_viewbox, old, audio_file):
 
     # Get Objects
     for obj in scene.objects:
-        if not obj['render_voxon']:
+        if not obj['render_voxon'] or obj.hide_render:
             continue
         
         object_eval = obj.evaluated_get(dps) # get mesh with modifiers
@@ -513,7 +514,7 @@ def make_recording_frame(time, aspect, show_viewbox, old, audio_file):
                 for loop_index in range(poly.loop_start + 1, poly.loop_start + loop_total):
                     meshes += (mesh.loops[loop_index].vertex_index).to_bytes(index_bytes, 'little')
 
-            obj['meshes'] = meshes
+        obj['meshes'] = meshes
                 
         msg += CmdDrawMeshTex(obj, fillmode, color, obj['image_name'])
 
