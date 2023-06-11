@@ -67,7 +67,7 @@ To play a recording with voxieplay, type voxieplay followed by the path of the r
 4. If you enable "Auto-check for Update" you will be alerted in the Voxon Rendering panel when there is an update to the add-on
 5. Click "Check now for voxon_x_blender update".
 6. If an update is found, click "Update now to X.X.X" to update.  You can also trigger another check by clicking the refresh icon.
-7. You change to any version of the add-on by clicking the "Install the master / old version" button and selecting your desired version.  You can also switch to the master branch of this repository, though be aware that this version may have more bugs than official rele ases.
+7. You change to any version of the add-on by clicking the "Install the master / old version" button and selecting your desired version.  You can also switch to the master branch of this repository, though be aware that this version may have more bugs than official releases.
 8. If an updated add-on is not working correctly, clicking "Restore addon backup" will restore the previously loaded version of the add-on.
 ### Tips and Tricks
  - Disabling an object in renders will stop it from being rendered in real-time and recordings.  This does not apply to the viewbox
