@@ -6,7 +6,7 @@ Adapted from Ben Weatherall's Voxon Plugin
 
 bl_info = {
 	"name": "Voxon X Blender Add-on",
-	"version": (2, 4, 1),
+	"version": (2, 4, 2),
 	"author": "Holophant Studios",
 	"blender": (3, 0, 0),
 	"category": "Render",
@@ -149,8 +149,6 @@ class VoxonCast():
 			
 		if((time.time() - self.start_time) < self.remote_time):
 			return 0.01
-		
-		global REGISTERED_LOOP
 
 		dps = bpy.context.evaluated_depsgraph_get()
 		scene = bpy.context.scene
@@ -384,9 +382,7 @@ class VoxonCast():
 				VoxonCast.show_error()
 				self.msg = b''
 				self.disconnect()
-				
-				if(bpy.app.timers.is_registered(REGISTERED_LOOP)):
-					bpy.app.timers.unregister(REGISTERED_LOOP)
+
 				return None
 		
 		self.msg += CmdFrameEnd()
@@ -404,15 +400,11 @@ class VoxonCast():
 				else:
 					VoxonCast.show_error()
 				self.disconnect()
-				if(bpy.app.timers.is_registered(REGISTERED_LOOP)):
-					bpy.app.timers.unregister(REGISTERED_LOOP)
 				self.bigpak = None
 				return None
 		except Exception:
 			VoxonCast.show_error()
 			self.disconnect()
-			if(bpy.app.timers.is_registered(REGISTERED_LOOP)):
-				bpy.app.timers.unregister(REGISTERED_LOOP)
 			self.bigpak = None
 			return None
 			
@@ -576,14 +568,9 @@ class VoxonRenderingPanel(Panel):
 			row.prop(voxon_prop, "recording_name", text = "")
 		row = layout.row()
 		row.prop(voxon_prop, "recording_action")
-		row = layout.row()
-		row.scale_y = 0.7
-		row.alignment = 'CENTER'
-		row.label(text="15 fps recommended")
-		row = layout.row()
-		row.scale_y = 0.7
-		row.alignment = 'CENTER'
-		row.label(text='Viewbox required')
+		if len(voxon_prop.recording_output):
+			row = layout.row()
+			row.label(text=voxon_prop.recording_output, icon = 'ERROR')
 		row = layout.row(align=True)
 		sub = row.row()
 		
@@ -653,8 +640,11 @@ class RecordingWrapper(Operator):
 		if bpy.app.version < (3, 5, 0):
 			old = True
 		props = context.scene.voxon_properties
+		props.recording_output = ""
 		response = make_recording(props.recording_action, props.recording_path, props.recording_name, old)
 		self.report(response[0], response[1])
+		if response[0] == {'ERROR'}:
+			props.recording_output = "Last recording failed"
 		return {'FINISHED'}
 
 class AddonPrefs(AddonPreferences):
@@ -669,7 +659,7 @@ class AddonPrefs(AddonPreferences):
 		default = False
 	)
 
-	auto_check_update:v BoolProperty(
+	auto_check_update: BoolProperty(
 		name="Auto-check for Update",
 		description="If enabled, auto-check for updates using an interval",
 		default=True)
@@ -745,6 +735,11 @@ class VoxonProperties(PropertyGroup):
 			('REPLACE', "Replace", ""),
 			('APPEND', "Append", "")
 		]
+	)
+	recording_output: StringProperty(
+		name = "Recording Output",
+		description = "",
+		default = ""
 	)
 	
 

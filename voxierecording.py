@@ -6,7 +6,7 @@ import crc32c
 from .voxieplay import *
 
 def make_recording(action, location, name, old):
-    make_time = time.process_time()
+    start_make_time = time.perf_counter()
     append_text = "Append data: "
     loaded_images = set() # names/crc of loaded images
     anim_time = 0
@@ -185,6 +185,7 @@ def make_recording(action, location, name, old):
     # Initialize material and other important information
     try:
         image_lookup = {} # convert image path to an image file name, if possible
+        some_not_rendered = False
         for obj in scene.objects:
             if obj.type != 'MESH' or (obj is viewbox):
                 obj['render_voxon'] = False
@@ -236,6 +237,7 @@ def make_recording(action, location, name, old):
                                             except FileNotFoundError:
                                                 obj['render_voxon'] = False
                                                 log.write("WARNING: "+obj.name+" not rendered, unable to find image texture at given path\n")
+                                                some_not_rendered = True
                                                 continue
                                             obj['image_name'] = image_name.encode('ascii')
                                             image_lookup[image_path] = obj['image_name']
@@ -244,6 +246,7 @@ def make_recording(action, location, name, old):
                                     else:
                                         obj['render_voxon'] = False
                                         log.write("WARNING: "+obj.name+" not rendered since no image texture was found\n")
+                                        some_not_rendered = True
                                         continue
                                 
                                 elif color_node.bl_idname == 'ShaderNodeVertexColor':
@@ -251,6 +254,7 @@ def make_recording(action, location, name, old):
                                     if bl_cols_loc is None:
                                         obj['render_voxon'] = False
                                         log.write("WARNING: "+obj.name+" not rendered since no color attribute was set\n")
+                                        some_not_rendered = True
                                         continue
                                     obj['fillmode'] += 16
                                     obj['voxon_material'] = 'VERTEX'
@@ -268,16 +272,19 @@ def make_recording(action, location, name, old):
                                 else:
                                     obj['render_voxon'] = False
                                     log.write("WARNING: "+obj.name+" not rendered due to unsupported shader node\n")
+                                    some_not_rendered = True
                                     continue  
                             else:
                                 obj['voxon_material'] = 'DEFAULT'
                         else:
                             obj['render_voxon'] = False
                             log.write("WARNING: "+obj.name+" not rendered due to unsupported shader node\n")
+                            some_not_rendered = True
                             continue
                     else:
                         obj['render_voxon'] = False
                         log.write("WARNING: "+obj.name+" not rendered since not output shader node was found\n")
+                        some_not_rendered = True
                         continue
                 else:
                     obj['voxon_material'] = 'DIFFUSE'
@@ -294,6 +301,7 @@ def make_recording(action, location, name, old):
 
     # Add audio if applicable
     audio_file = ""
+    audio_fail = False
     try:
         if scene.sequence_editor:
             for seq in scene.sequence_editor.sequences_all:
@@ -312,45 +320,104 @@ def make_recording(action, location, name, old):
     except Exception:
         log.write("WARNING: Failed to add audio, see traceback:\n" + traceback.format_exc())
         audio_file = ""
+        audio_fail = True
 
     aspect = scene.voxon_properties.aspect
     show_viewbox = scene.voxon_properties.show_viewbox
     if show_viewbox:
         log.write("INFO: Viewbox boundaries being rendered in scene\n")
+    
     frame_start = scene.frame_start
     frame_step = scene.frame_step
     frame_end = scene.frame_end
+    frames_total = frame_end - frame_start + 1
     fps = scene.render.fps/scene.render.fps_base
     frame_time = frame_step/fps
     log.write("INFO: Viewbox aspect = "+str(tuple(aspect))+", effective frame rate: "+str(1/frame_time) + "\n")
 
-    for frame in range(frame_start, frame_end + 1, frame_step):
-        try:
-            scene.frame_set(frame)
-            rec.write(make_recording_frame(anim_time, aspect, show_viewbox, old, audio_file))
-            anim_time += frame_time
-            audio_file = "" # Only put in audio for first frame
-        except Exception:
-            log.write("ERROR: Failed to render frame "+str(frame)+" , see traceback:\n" + traceback.format_exc())
-            rec.close()
-            log.close()
-            os.chdir(cwd)
-            return ({'ERROR'}, "Failed to render frame "+str(frame))
+    # Progress bar code
+    window = bpy.context.window
+    mouse_x = window.width
+    mouse_y = window.height
+    update_period = 5
     
-    # Write pointer to end of file
-    end_pos = rec.tell()
-    rec.seek(8)
-    rec.write(end_pos.to_bytes(4, 'little'))
-    log.write(append_text + str(anim_time) +"\n")
-    make_time = time.process_time() - make_time
-    log.write("INFO: Finished making recording! Took %.3f seconds" % round(make_time, 3))
-    os.chdir(cwd)
-    rec.close()
-    log.close()
-    return({'INFO'}, 'Recording successfully made in ' +  name)
+    def progress_update(frames_rendered, percent, estimated_time):
+
+        def draw(self, context):
+            self.layout.label(text=str(frames_rendered)+"/"+str(frames_total)+" frames rendered ("+str(percent)+"%)")
+            self.layout.label(text="Estimated time left: " + estimated_time)
+            window.cursor_warp(mouse_x,mouse_y)
+
+        bpy.context.window_manager.popup_menu(draw, title = "Voxon Recording", icon = 'INFO')
+    
+    def show_message(lines = [""], icon = 'INFO'):
+
+        def draw(self, context):
+            for line in lines:
+                self.layout.label(text=line)
+
+        bpy.context.window_manager.popup_menu(draw, title = "Voxon Recording", icon = icon)
+
+    def render_frames():
+        period_start = time.perf_counter()
+        audio = audio_file
+        while render_frames.frame <= frame_end:
+            try:
+                scene.frame_set(render_frames.frame)
+                rec.write(render_frame(render_frames.anim_time, aspect, show_viewbox, old, audio))
+                render_frames.anim_time += frame_time
+                audio = "" # Only put in audio for first frame
+            except Exception:
+                log.write("ERROR: Failed to render frame "+str(render_frames.frame)+" , see traceback:\n" + traceback.format_exc())
+                rec.close()
+                log.close()
+                os.chdir(cwd)
+                show_message(["Failed to render frame "+str(render_frames.frame), "See log file for more details"], 'ERROR')
+                props = bpy.context.scene.voxon_properties
+                props.recording_output = "Last recording failed, see log file"
+                return
+            render_frames.frame += 1
+
+            time_passed = time.perf_counter() - period_start
+            if time_passed >= update_period:
+                render_frames.time += time_passed
+                frames_rendered = render_frames.frame - frame_start - 1
+                percent = frames_rendered/frames_total
+                estimated_time = round(render_frames.time/percent - render_frames.time)
+                if estimated_time > 60:
+                    estimated_time = str(estimated_time//60) + " min, "+str(estimated_time % 60) + " sec"
+                else:
+                    estimated_time = str(estimated_time) + " sec"
+                percent = round(percent*100)
+                progress_update(frames_rendered, percent, estimated_time)
+                return 0 # Triggers update
+        
+        # Write pointer to end of file
+        end_pos = rec.tell()
+        rec.seek(8)
+        rec.write(end_pos.to_bytes(4, 'little'))
+        log.write(append_text + str(render_frames.anim_time) +"\n")
+        make_time = time.perf_counter() - start_make_time
+        log.write("INFO: Finished making recording! Took %.3f seconds" % round(make_time, 3))
+        os.chdir(cwd)
+        rec.close()
+        log.close()
+        end_message = ["Finished making recording!"]
+        if some_not_rendered:
+            end_message.append("Some objects not rendered, see log file for details")
+        if audio_fail:
+            end_message.append("Failed to add audio, see log file for details")
+        show_message(end_message, 'ERROR')
+        return
+
+    render_frames.frame = frame_start
+    render_frames.time = 0
+    render_frames.anim_time = anim_time
+    bpy.app.timers.register(render_frames)
+    return({'INFO'}, 'Rendering frames')
 
 
-def make_recording_frame(time, aspect, show_viewbox, old, audio_file):
+def render_frame(time, aspect, show_viewbox, old, audio_file):
     dps = bpy.context.evaluated_depsgraph_get()
     
     msg = CmdFrameStart(time)
