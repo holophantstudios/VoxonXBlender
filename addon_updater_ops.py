@@ -1383,7 +1383,7 @@ def register(bl_info):
     updater.backup_current = True  # True by default
 
     # Sample ignore patterns for when creating backup of current during update.
-    updater.backup_ignore_patterns = ["__pycache__"]
+    updater.backup_ignore_patterns = ["__pycache__", ".github"]
     # Alternate example patterns:
     # updater.backup_ignore_patterns = [".git", "__pycache__", "*.bat", ".gitignore", "*.exe"]
 
