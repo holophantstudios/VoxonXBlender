@@ -7,7 +7,7 @@ A Blender add-on for creating recordings or displaying in real-time Blender proj
    - A Windows computer running the VoxieOS Simulator may also be used
  - Blender version 3.0 or later (on any platform)
 ### Installing the Add-on
-1. Download the add-on (link to be fixed)
+1. [Download the add-on](https://github.com/holophantstudios/VoxonXBlender/blob/641b22da02fc2b685e21539d94674c4c8251a4af/.github/ADDON_DOWNLOADS/VoxonXBlender.zip)
 2. In Blender, from the topbar go to Edit > Preferences
 3. In the pop-up window, select "Add-ons" from the left menu.  In the top right corner, click "Install" and select the file you just downloaded.
 4. An add-on called "Render: Voxon X Blender Add-On" should appear.  Select the checkbox next to the add-on name to enable it.
