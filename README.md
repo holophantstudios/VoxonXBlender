@@ -7,7 +7,7 @@ A Blender add-on for creating recordings or displaying in real-time Blender proj
    - A Windows computer running the VoxieOS Simulator may also be used
  - Blender version 3.0 or later (on any platform)
 ### Installing the Add-on
-1. [Download the add-on](https://api.github.com/repos/holophantstudios/VoxonXBlender/v2.4.1)
+1. Download the add-on (link to be fixed)
 2. In Blender, from the topbar go to Edit > Preferences
 3. In the pop-up window, select "Add-ons" from the left menu.  In the top right corner, click "Install" and select the file you just downloaded.
 4. An add-on called "Render: Voxon X Blender Add-On" should appear.  Select the checkbox next to the add-on name to enable it.
@@ -49,9 +49,9 @@ When real-time rendering, the add-on continuously sends data over the local netw
 
 Real-time rendering is great for testing what objects will look like on the volumetric display.  However, rendering can become very slow when a Blender scene has lots of geometry.
 ### Recordings
-The add-on can turn animated Blender scenesMaking recordings with the add-on has many advantages over other rendering methods.  Recordings can have faster and more consistent frame rates than real-time rendering.  Recordings also use significantly less memory than OBJ sequences and can include audio.
+The add-on can turn animated Blender scenes into recordings using the Voxon .REC format. These can be copied to the VX1 and played back with VoxieOS.  Advantages of this method include faster playback, more consistent frame rate and much smaller file size than animated .OBJ sequences.  They can also include audio.
 #### Making Recordings
-A recording is a folder containing a log file, that has debugging and appending data; a rec file, that has the actual recording data; and any needed external image and audio files.  Recordings can be created, replaced, or appened in the Voxon Rendering Panel.  In order to make a recording, the Blender scene must have a viewbox.  Animating at 15 fps is recommended because the VX1 can render 15 volumes/second, but any fps can be used.
+A recording is a folder containing a log file, that has debugging and appending data; a rec file, that has the actual recording data; and any needed external image and audio files.  Recordings can be created, replaced, or appened in the Voxon Rendering Panel.  In order to make a recording, the Blender scene must have a viewbox.  Animating at 15 fps is recommended because that is the speed the bottom and top of the VX1 are rendered at (the middle is rendered at 30 vps), but any fps can be used.
 
 To create a recording, select the location for the recording to made and the name of the recording, then click "Make Recording".  If a folder already exists with the given name, the folder will instead be named name.XXX, where XXX is a number (the log and rec files will still be named with the given name).
 
@@ -67,7 +67,7 @@ To play a recording with voxieplay, type voxieplay followed by the path of the r
 4. If you enable "Auto-check for Update" you will be alerted in the Voxon Rendering panel when there is an update to the add-on
 5. Click "Check now for voxon_x_blender update".
 6. If an update is found, click "Update now to X.X.X" to update.  You can also trigger another check by clicking the refresh icon.
-7. You change to any version of the add-on by clicking the "Install the master / old version" button and selecting your desired version.  You can also switch to the master branch of this repository, though be aware that this version may have more bugs than official rele ases.
+7. You change to any version of the add-on by clicking the "Install the master / old version" button and selecting your desired version.  You can also switch to the master branch of this repository, though be aware that this version may have more bugs than official releases.
 8. If an updated add-on is not working correctly, clicking "Restore addon backup" will restore the previously loaded version of the add-on.
 ### Tips and Tricks
  - Disabling an object in renders will stop it from being rendered in real-time and recordings.  This does not apply to the viewbox
